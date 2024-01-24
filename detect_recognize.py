@@ -87,6 +87,7 @@ class license_plate_recognition:
                 break
         cap.release()
         cv2.destroyAllWindows()
+    
     def license_complies_format(self, text):
         """
         Check if the license plate text complies with the required format.
