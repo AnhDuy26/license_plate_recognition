@@ -51,8 +51,6 @@ cap = cv2.VideoCapture('original_video.mp4')
 out = cv2.VideoWriter('./new_video.mp4', fourcc, fps, (width, height))
 ``` 
 
-<img src="https://github.com/AnhDuy26/Image-Stitching-Project/blob/master/Images/GUI.jpg">
-
 ## Sample results
 
 ### Input images
