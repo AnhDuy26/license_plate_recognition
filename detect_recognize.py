@@ -34,16 +34,16 @@ class license_plate_recognition:
             tuple: Saving result image with name Result.png
         """
         results = self.model_coco.predict(file, show_labels=False, classes=[2,3,5,7])
-        annotated_frame = results[0].plot()
+        annotated_frame = results[0].plot(labels=False)
         results_detect = self.model_plate.predict(file, show_labels=False)
         # Visualize the results on the frame
-        annotated_frame_detect = results_detect[0].plot()
+        annotated_frame_detect = results_detect[0].plot(labels=False)
         # Concatenate the annotated frames horizontally
         alpha = 0.5
         beta = 1-alpha
         combined_frame = cv2.addWeighted(annotated_frame, alpha, annotated_frame_detect, beta, 0.0)
 
-        cv2.imwrite("Result.png", combined_frame)
+        cv2.imwrite("Result_detect.png", combined_frame)
 
     def predict_detection_video(self,file):
         """
@@ -87,7 +87,6 @@ class license_plate_recognition:
                 break
         cap.release()
         cv2.destroyAllWindows()
-    
     def license_complies_format(self, text):
         """
         Check if the license plate text complies with the required format.
@@ -150,11 +149,9 @@ class license_plate_recognition:
         try:
             text = detections[0][1]
             text = text.upper().replace(' ', '')
-            if len(text) == 7:
+            if self.license_complies_format(text):
                 text = self.format_license(text)
-                if self.license_complies_format(text):
-                    # return detections
-                    return text
+                return text
             return None
         except:
             return None
@@ -195,7 +192,7 @@ class license_plate_recognition:
                 top_left = tuple([int(x1),int(y1-10)])
                 text = results_ocr
                 font = cv2.FONT_HERSHEY_SIMPLEX
-                combined_frame = cv2.putText(combined_frame, text, top_left, font, 2, (0, 0, 0), 3, cv2.LINE_AA)
+                combined_frame = cv2.putText(combined_frame, text, top_left, font, 2, (255, 0, 0), 3, cv2.LINE_AA)
 
         # Save the annotated
         cv2.imwrite("Result.png", combined_frame)
@@ -243,9 +240,59 @@ class license_plate_recognition:
                         text = results_ocr
                         font = cv2.FONT_HERSHEY_SIMPLEX
                         combined_frame = cv2.putText(combined_frame, text, top_left, font, 2, (255, 0, 0), 3, cv2.LINE_AA)
-                cv2.imwrite("result_frame/result"+str(frame_nmr)+".png", combined_frame)
+                # cv2.imwrite("result_frame/result"+str(frame_nmr)+".png", combined_frame)
+                cv2.imwrite("test_pil/result" + str(frame_nmr) + ".png", combined_frame)
         cap.release()
+
+    def predict_detection_video_plate(self,file):
+        """
+        Read the input video and show video result with car detection, license plate detection
+
+        Args:
+            file (video): input video containing car and license plate
+
+        Returns:
+            tuple: Show video result with car detection and license plate detection
+        """
+        frame_nmr = -1
+        cap = cv2.VideoCapture(file)
+        while cap.isOpened():
+            frame_nmr += 1
+            # Read a frame from the video
+            success, frame = cap.read()
+            if success:
+                # Model license plate
+                results = self.model_plate(frame)
+
+                # Visualize the results on the frame
+                annotated_frame = results[0].plot(labels=False)
+                # # Model coco
+                # results_coco = self.model_coco(frame)
+                #
+                # # Visualize the results on the frame
+                # annotated_frame_coco = results_coco[0].plot(labels=False)
+                #
+                # # Concatenate the annotated frames horizontally
+                # alpha = 0.5
+                # beta = 1 - alpha
+                # combined_frame = cv2.addWeighted(annotated_frame, alpha, annotated_frame_coco, beta, 0.0)
+                # rs = cv2.resize(annotated_frame, (960, 540))
+                # # Display the annotated frame
+                # cv2.imshow("YOLOv8 Inference", rs)
+                #
+                # # Break the loop if 'q' is pressed
+                # if cv2.waitKey(1) & 0xFF == ord("q"):
+                #     break
+                cv2.imwrite("result_slide/result" + str(frame_nmr) + ".png", annotated_frame)
+            else:
+                # Break the loop if the end of the video is reached
+                break
+        cap.release()
+        cv2.destroyAllWindows()
 
 
 model = license_plate_recognition()
 model.predict_detection_ocr_video('sample_20p.mp4')
+# model.predict_detection_video_plate('sample_20p.mp4')
+# model.predict_detection_video('sample_1080.mp4')
+# model.predict_detection('frame24.png')
